@@ -3,7 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { ICON } from './constants';
 import Icon from './Icon';
 
-const Export = ( data ) => {
+const Export = (props) => {
+    var data = props.data;
+
     const [href, setHref] = useState('');
 
     useEffect(() => {
@@ -19,6 +21,7 @@ const Export = ( data ) => {
             href={href}
             download="data.json"
         >
+            
             <Icon
                 path={ICON.DOWNLOAD.path}
                 viewBox={ICON.DOWNLOAD.viewBox}

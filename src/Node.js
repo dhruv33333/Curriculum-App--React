@@ -3,15 +3,11 @@ class Node {
     id;
     name;
     level;
-    previous;
-    next;
     parent;
-    children;
     constructor(name, parent) {
         this.id = randomString(7);
         this.name = name;
         this.parent = parent;
-        this.children = [];
     }
 }
 

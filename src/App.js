@@ -9,26 +9,30 @@ function App() {
 
   useEffect(() => {
     console.log(arr);
-  },);
+  });
 
   const addCard = () => {
     let parent;
-    let level=1;
+    let level = 1;
 
-    if(arr.length != 0) {
-      parent = arr[arr.length-1].parent;
+    //setting the parent
+    if (arr.length != 0) {
+      parent = arr[arr.length - 1].parent;
     } else {
       parent = new Node("-1", null);
     }
 
+    //creating the node
     let node = new Node("", parent);
+
+    //setting the level
     node.level = level;
 
-    if(parent.name != "-1") {
-      node.level = arr[arr.length-1].level;
-      parent.children.push(node);
+    if (parent.name != "-1") {
+      node.level = arr[arr.length - 1].level;
     }
 
+    //updating the state
     setState([
       ...arr,
       node
@@ -37,79 +41,68 @@ function App() {
   }
 
   const handleChange = (text, node) => {
-     node.name = text;
-     setState([...arr]);
+    //updating the text of the node and updating the state
+    node.name = text;
+    setState([ ...arr ]);
   }
 
   const getIndexTillDelete = (node, index) => {
     let i;
-    let j = node.parent.children.indexOf(node);
-    node.parent.children.splice(j, 1);
 
-    for( i=index+1 ; i<arr.length ; i++)
-    {
-      if(arr[i].level <= node.level) {
+    for (i = index + 1; i < arr.length; i++) {
+      if (arr[i].level <= node.level) {
         break;
       }
-      else if(arr[i].parent.name != "-1"){
-        j = arr[i].parent.children.indexOf(arr[i]);
-        arr[i].parent.children.splice(j, 1);
-      }
     }
-    return i-1;
+    return i - 1;
   }
 
   const handleDelete = (node) => {
     let index = arr.indexOf(node);
-    console.log(index);
-    
+
     let indexTillDelete = getIndexTillDelete(node, index);
-    let noOfElements = indexTillDelete-index+1;
-    console.log(noOfElements);
+    let noOfElements = indexTillDelete - index + 1;
+
     arr.splice(index, noOfElements);
 
-    setState([...arr]);
+    setState([ ...arr ]);
   }
 
-  const handleOutdent = (node) => {
+  const handleIndent = (node) => {
     let index = arr.indexOf(node);
 
-    if(index == 0) {
+    //can't indent if first element
+    if (index == 0) {
       return;
     }
-    if(node.level == arr[index-1].level+1) {
+    //a
+    // b
+    //checking if we can give more indentation or not
+    if (node.level == arr[index - 1].level + 1) {
       return;
-    }
-
-    //removing from the prev parent's children array if existed
-    if(node.parent.name != "-1") {
-      let i = node.parent.children.indexOf(node);
-      node.parent.children.splice(i, 1);
     }
 
     //finding the index of above node with same level
     let i;
-    for(i=index-1 ; i>=0 ; i--) {
-      if(arr[i].level == node.level) {
+    for (i = index - 1; i >= 0; i--) {
+      if (arr[i].level == node.level) {
         break;
       }
     }
 
     //setting the new parent and children and increasing the level
     node.parent = arr[i];
-    arr[i].children.push(node);
     node.level++;
 
-    setState([
-      ...arr
-    ]);
+    setState([ ...arr ]);
 
   }
 
-  const handleIndent = (node) => {
+  const handleOutdent = (node) => {
     let index = arr.indexOf(node);
 
-    if(node.level === 1) {
+    //cannot outdent if level is 1
+    if (node.level === 1) {
       return;
     }
 
@@ -117,25 +110,86 @@ function App() {
     let currParent = node.parent;
     node.level = currParent.level;
 
-    //deleting node from current parent
-    let i = currParent.children.indexOf(node);
-    currParent.children.splice(i, 1);
-
-    //setting new parent and adding the node to new parent's children
+    //setting new parent 
     node.parent = currParent.parent;
-    node.parent.children.push(node);
 
-    setState([
-      ...arr
-    ]);
+    setState([ ...arr ]);
+  }
+
+  const handleUp = (node) => {
+    let index = arr.indexOf(node);
+
+    //finding index to swap
+    let i, j;
+    for(i=index-1 ; i>=0 ; i--) {
+      if(arr[i].level < node.level) {
+        return;
+      }
+      if(arr[i].level === node.level) {
+        break;
+      }
+    }
+    if(i == -1) {
+      return;
+    }
+
+    //no of elements of the array above to be swapped
+    let noOfElements = index - i;
+    //no of elements of curr arr
+    for(j=index+1 ; j<arr.length ; j++) {
+      if(arr[j].level <= node.level) {
+        break;
+      }
+    }
+    j--;
+ 
+    let tempArr = arr.splice(i, noOfElements);
+    arr.splice(index-noOfElements + (j-index+1), 0, ...tempArr);
+
+    setState([ ...arr ]);
+  }
+
+  const handleDown = (node) => {
+    let index = arr.indexOf(node);
+
+    //finding index till the end of array
+    let i, j;
+    for(i=index+1 ; i<arr.length ; i++) {
+      if(arr[i].level < node.level) {
+        return;
+      }
+      if(arr[i].level === node.level) {
+        break;
+      }
+    }
+    if(i == arr.length) {
+      return;
+    }
+
+    //no of elements of the curr array 
+    let noOfElements = i - index;
+
+    //no of elements of below arr
+    for(j=i+1 ; j<arr.length ; j++) {
+      
+      if(arr[j].level <= node.level) {
+        break;
+      }
+    }
+    j--;
+
+    let tempArr = arr.splice(index, noOfElements);
+    arr.splice(index + (j-i+1), 0, ...tempArr);
+
+    setState([ ...arr ]);
   }
 
   return (
     <div className="App">
-      {/* <div id="importexport">
-            <Export data={arr}></Export>
-            <Import onImport={(importedData) => setState(importedData)}></Import>
-      </div> */}
+      <div id="importexport">
+        <Export data={arr}></Export>
+        <Import onImport={(importedData) => setState(importedData)}></Import>
+      </div>
       <h1>Mathematics</h1>
       <hr></hr>
 
@@ -153,18 +207,20 @@ function App() {
       <hr></hr>
 
       <div id="cards">
-      {
-        arr.map((node, index) => (
-          <Card 
-            node={node}
-            key={index}
-            handleChange={(text) => handleChange(text, node)}
-            handleDelete={handleDelete}
-            handleOutdent={handleOutdent}
-            handleIndent={handleIndent}
+        {
+          arr.map((node, index) => (
+            <Card
+              node={node}
+              key={index}
+              handleChange={(text) => handleChange(text, node)}
+              handleDelete={handleDelete}
+              handleOutdent={handleOutdent}
+              handleIndent={handleIndent}
+              handleUp={handleUp}
+              handleDown={handleDown}
             />
-        ))
-      }
+          ))
+        }
       </div>
       <button id="add-btn" onClick={addCard}>Add a Standard</button>
 
